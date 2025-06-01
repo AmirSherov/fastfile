@@ -1,7 +1,7 @@
 // Конфигурационные параметры приложения
 
 // URL бэкенда
-export const BACKEND_URL = 'http://127.0.0.1:8000';
+export const BACKEND_URL = 'https://fastfile.onrender.com';
 
 // Пути API
 export const API_ROUTES = {
@@ -12,8 +12,7 @@ export const API_ROUTES = {
 
 // WebSocket URL
 export const getWebSocketUrl = (roomId) => {
-  const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-  return `${wsProtocol}//127.0.0.1:8000/ws/signal/${roomId}`;
+  return `wss://fastfile.onrender.com/ws/signal/${roomId}`;
 };
 
 // Настройки передачи файлов
