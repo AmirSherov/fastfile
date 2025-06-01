@@ -13,7 +13,7 @@ def main():
     print("Запуск сервера с поддержкой WebSocket...")
     
     # Команда для запуска Daphne
-    cmd = [sys.executable, "-m", "daphne", "backend.asgi:application", "-b", "127.0.0.1", "-p", "8000"]
+    cmd = [sys.executable, "-m", "daphne", "backend.asgi:application", "-b", "0.0.0.0", "-p", "8000"]
     
     try:
         # Запускаем процесс
