@@ -280,6 +280,7 @@ export default function RoomPage() {
       };
       
       pc.onicecandidateerror = (event) => {
+        if (event.errorCode === 701) return;
         console.error('[Получатель] Ошибка ICE кандидата:', event.errorCode, event.errorText);
       };
     } catch (error) {
@@ -340,7 +341,7 @@ export default function RoomPage() {
             </div>
             
             <div className={styles.transferInfo}>
-              <span>{progress}% получено</span>
+              <div>{progress}% получено</div>
               <span>{formatFileSize(receivedSize)} / {fileInfo ? formatFileSize(fileInfo.size) : '0 B'}</span>
             </div>
           </div>

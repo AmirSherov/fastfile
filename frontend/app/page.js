@@ -232,6 +232,7 @@ export default function Home() {
       };
       
       pc.onicecandidateerror = (event) => {
+        if (event.errorCode === 701) return;
         console.error('[Отправитель] Ошибка ICE кандидата:', event.errorCode, event.errorText);
       };
       pc.onconnectionstatechange = (event) => {
@@ -303,41 +304,39 @@ export default function Home() {
       size: file.size,
       lastModified: file.lastModified
     };
-    
-    console.log('Отправляем информацию о файле:', fileInfo);
     dataChannel.send(JSON.stringify({
       type: 'file-info',
       data: fileInfo
     }));
-    
     let offset = 0;
     let reader = new FileReader();
-    
     const MAX_BUFFER_SIZE = FILE_TRANSFER_CONFIG.MAX_BUFFER_SIZE;
-    
     let waitingForBuffer = false;
+    let lastOffset = 0;
+    let progressInterval = setInterval(() => {
+      if (offset !== lastOffset) {
+        const progress = Math.min(100, Math.floor((offset / file.size) * 100));
+        setProgress(progress);
+        lastOffset = offset;
+      }
+      if (offset >= file.size) {
+        clearInterval(progressInterval);
+      }
+    }, 500);
     dataChannel.onbufferedamountlow = () => {
       if (waitingForBuffer && offset < file.size) {
-        console.log('Буфер освободился, продолжаем передачу...');
         waitingForBuffer = false;
         readSlice(offset);
       }
     };
-    
     dataChannel.bufferedAmountLowThreshold = MAX_BUFFER_SIZE * FILE_TRANSFER_CONFIG.BUFFER_THRESHOLD_PERCENT / 100;
-    
     reader.onload = (event) => {
       if (dataChannel.readyState === 'open') {
         try {
           dataChannel.send(event.target.result);
           offset += event.target.result.byteLength;
-          
-          const progress = Math.min(100, Math.floor((offset / file.size) * 100));
-          setProgress(progress);
-          
           if (offset < file.size) {
             if (dataChannel.bufferedAmount > MAX_BUFFER_SIZE) {
-              console.log(`Буфер заполнен (${dataChannel.bufferedAmount} байт), ожидаем освобождения...`);
               waitingForBuffer = true;
             } else {
               if (file.size > 10 * 1024 * 1024) {
@@ -349,26 +348,24 @@ export default function Home() {
           } else {
             dataChannel.send(JSON.stringify({ type: 'file-complete' }));
             setAppState(APP_STATES.COMPLETE);
+            clearInterval(progressInterval);
           }
         } catch (error) {
-          console.error('Ошибка при отправке данных:', error);
           setError(`Ошибка при отправке данных: ${error.message}`);
           setAppState(APP_STATES.ERROR);
+          clearInterval(progressInterval);
         }
       }
     };
-    
     reader.onerror = (error) => {
-      console.error('Ошибка чтения файла:', error);
       setError('Ошибка при чтении файла. Пожалуйста, попробуйте еще раз.');
       setAppState(APP_STATES.ERROR);
+      clearInterval(progressInterval);
     };
-    
     const readSlice = (offset) => {
       const slice = file.slice(offset, offset + CHUNK_SIZE);
       reader.readAsArrayBuffer(slice);
     };
-    
     readSlice(0);
   };
   const cancelTransfer = () => {

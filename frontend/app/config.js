@@ -18,14 +18,14 @@ export const getWebSocketUrl = (roomId) => {
 // Настройки передачи файлов
 export const FILE_TRANSFER_CONFIG = {
   // Размер чанка для передачи файлов (в байтах)
-  CHUNK_SIZE: 16 * 1024, // 16KB (уменьшен с 64KB для более плавной передачи)
+  CHUNK_SIZE: 256 * 1024, // 256KB (максимальное ускорение)
   
   // Максимальный размер буфера DataChannel (в байтах)
-  MAX_BUFFER_SIZE: 1024 * 1024, // 1MB
+  MAX_BUFFER_SIZE: 4 * 1024 * 1024, // 8MB
   
   // Пороговое значение для события onbufferedamountlow (в процентах от MAX_BUFFER_SIZE)
   BUFFER_THRESHOLD_PERCENT: 50,
   
   // Задержка между отправкой чанков при большом файле (в мс)
-  CHUNK_DELAY: 5, // небольшая задержка для предотвращения переполнения буфера
+  CHUNK_DELAY: 0, // без задержки
 }; 
